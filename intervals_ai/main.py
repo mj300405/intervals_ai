@@ -5,6 +5,8 @@ import numpy as np
 from datetime import datetime
 import json
 import matplotlib.pyplot as plt
+import librosa
+import librosa.display
 
 from intervals_ai.generation.config import GenerationConfig
 from intervals_ai.generation.intervals import IntervalGenerator
@@ -52,13 +54,13 @@ def main():
             duration=2.0,
             amplitude=0.5,
             note_gap=0.2,
-            min_freq=55.0,
-            max_freq=1760.0
+            min_freq=55.0,    # A1 - low bass note
+            max_freq=1760.0   # A6 - high soprano/violin note
         )
         interval_generator = IntervalGenerator(config)
         
         dataset = interval_generator.generate_dataset(
-            num_samples=5000,
+            num_samples=5000,  # Increased samples
             output_dir=str(data_dir)
         )
         print(f"Generated {len(dataset)} new samples")
@@ -70,7 +72,7 @@ def main():
     save_run_config(
         stats_dir,
         data_directory=str(data_dir),
-        num_epochs=50,
+        num_epochs=100,
         batch_size=32,
         learning_rate=0.001,
         model_params={
@@ -148,7 +150,7 @@ def main():
         train_loader=train_loader,
         val_loader=val_loader,
         epochs=150,
-        early_stopping_patience=10
+        early_stopping_patience=15
     )
     
     # Save training history
@@ -189,25 +191,43 @@ def main():
     
     # 5. Save visualizations
     print("\nSaving visualizations...")
+    
     # Confusion matrix
     plt.figure(figsize=(12, 8))
     evaluator.plot_confusion_matrix(
         results['confusion_matrix'],
         class_names=list(interval_generator.intervals.INTERVALS.keys())
     )
-    plt.savefig(plots_dir / 'confusion_matrix.png')
+    plt.tight_layout()
+    plt.savefig(plots_dir / 'confusion_matrix.png', bbox_inches='tight', dpi=300)
     plt.close()
     
-    # Training history
-    plt.figure(figsize=(15, 5))
-    evaluator.plot_training_history(history)
-    plt.savefig(plots_dir / 'training_history.png')
+    # Training history plot
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 5))
+    
+    # Plot loss
+    ax1.plot(history['train_loss'], label='Train Loss')
+    ax1.plot(history['val_loss'], label='Validation Loss')
+    ax1.set_title('Model Loss')
+    ax1.set_xlabel('Epoch')
+    ax1.set_ylabel('Loss')
+    ax1.legend()
+    
+    # Plot accuracy
+    ax2.plot(history['train_acc'], label='Train Accuracy')
+    ax2.plot(history['val_acc'], label='Validation Accuracy')
+    ax2.set_title('Model Accuracy')
+    ax2.set_xlabel('Epoch')
+    ax2.set_ylabel('Accuracy (%)')
+    ax2.legend()
+    
+    plt.tight_layout()
+    plt.savefig(plots_dir / 'training_history.png', bbox_inches='tight', dpi=300)
     plt.close()
     
     # 6. Save audio visualizations
     print("\nSaving audio visualizations...")
     audio_utils = AudioUtils()
-    visualizer = AudioVisualizer()
     
     sample_files = list(data_dir.glob("*.wav"))
     if sample_files:
@@ -216,10 +236,55 @@ def main():
             interval_name = sample_file.stem.split('_')[2]
             if interval_name not in visualized_intervals:
                 audio_data, sr = audio_utils.load_audio(str(sample_file))
-                plt.figure(figsize=(12, 12))
-                visualizer.plot_multiple_features(audio_data)
-                plt.savefig(plots_dir / f'audio_features_{interval_name}.png')
+                
+                # Create figure and plot features
+                fig = plt.figure(figsize=(12, 12))
+                
+                # Plot waveform
+                plt.subplot(3, 1, 1)
+                time = np.arange(len(audio_data)) / sr
+                plt.plot(time, audio_data)
+                plt.title("Waveform")
+                plt.xlabel("Time (s)")
+                plt.ylabel("Amplitude")
+                plt.grid(True)
+                
+                # Plot spectrogram
+                plt.subplot(3, 1, 2)
+                D = librosa.amplitude_to_db(
+                    np.abs(librosa.stft(audio_data)),
+                    ref=np.max
+                )
+                librosa.display.specshow(
+                    D,
+                    sr=sr,
+                    x_axis='time',
+                    y_axis='log'
+                )
+                plt.colorbar(format='%+2.0f dB')
+                plt.title("Spectrogram")
+                
+                # Plot mel spectrogram
+                plt.subplot(3, 1, 3)
+                mel_spec = librosa.feature.melspectrogram(
+                    y=audio_data,
+                    sr=sr
+                )
+                mel_spec_db = librosa.power_to_db(mel_spec, ref=np.max)
+                librosa.display.specshow(
+                    mel_spec_db,
+                    sr=sr,
+                    x_axis='time',
+                    y_axis='mel'
+                )
+                plt.colorbar(format='%+2.0f dB')
+                plt.title("Mel Spectrogram")
+                
+                plt.tight_layout()
+                plt.savefig(plots_dir / f'audio_features_{interval_name}.png', 
+                          bbox_inches='tight', dpi=300)
                 plt.close()
+                
                 visualized_intervals.add(interval_name)
                 if len(visualized_intervals) >= 3:  # Limit to 3 examples
                     break
