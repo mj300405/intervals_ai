@@ -1,0 +1,11 @@
+
+Training Summary:
+Total samples: 5000
+Training samples: 3500
+Validation samples: 750
+Test samples: 750
+Final validation accuracy: 92.53%
+Best validation accuracy: 95.60%
+Model checkpoints saved in: experiments\run_20241207_210709\checkpoints
+Plots saved in: experiments\run_20241207_210709\plots
+Statistics saved in: experiments\run_20241207_210709\stats

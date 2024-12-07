@@ -1,0 +1,72 @@
+Test Set Results:
+Accuracy: 0.91%
+
+minor_second:
+  Precision: 1.00
+  Recall: 0.98
+  F1-score: 0.99
+
+major_second:
+  Precision: 0.96
+  Recall: 0.98
+  F1-score: 0.97
+
+minor_third:
+  Precision: 0.95
+  Recall: 0.97
+  F1-score: 0.96
+
+major_third:
+  Precision: 0.98
+  Recall: 0.93
+  F1-score: 0.96
+
+perfect_fourth:
+  Precision: 0.93
+  Recall: 0.99
+  F1-score: 0.96
+
+tritone:
+  Precision: 0.89
+  Recall: 0.95
+  F1-score: 0.92
+
+perfect_fifth:
+  Precision: 0.87
+  Recall: 0.90
+  F1-score: 0.88
+
+minor_sixth:
+  Precision: 0.93
+  Recall: 0.83
+  F1-score: 0.88
+
+major_sixth:
+  Precision: 0.93
+  Recall: 0.91
+  F1-score: 0.92
+
+minor_seventh:
+  Precision: 0.68
+  Recall: 0.95
+  F1-score: 0.79
+
+major_seventh:
+  Precision: 0.93
+  Recall: 0.60
+  F1-score: 0.73
+
+octave:
+  Precision: 0.87
+  Recall: 0.89
+  F1-score: 0.88
+
+macro avg:
+  Precision: 0.91
+  Recall: 0.91
+  F1-score: 0.90
+
+weighted avg:
+  Precision: 0.91
+  Recall: 0.91
+  F1-score: 0.90
